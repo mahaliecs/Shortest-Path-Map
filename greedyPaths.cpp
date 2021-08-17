@@ -53,11 +53,13 @@ int colorPath(const vector< vector<int> >& heightMap,
     int dist = 0;
     int c = 0;
     int i = 0;
-    int forwardDist = 0;
-    int forwardUpDist = 0;
-    int forwardDownDist = 0;
+    int numChoices = 0;
+    int fwdDist = 0;
+    int fwdUpDist = 0;
+    int fwdDownDist = 0;
     int minStep = 0;
-    vector <int> pathSteps(2);
+    vector <int> pathSteps(0);
+    bool bottomRow = true;
     // color start of path
     r.at(start_row).at(c) = color_r;
     g.at(start_row).at(c) = color_g;
@@ -66,30 +68,29 @@ int colorPath(const vector< vector<int> >& heightMap,
     //find shortest path
     for (c = 0; c < heightMap.size() - 1; c++) {
         // test current spot
-        //cout << "current row is: " << start_row << endl;
-        //cout << "current column is: " << c << endl;
+        // cout << "current row is: " << start_row << endl;
+        // cout << "current column is: " << c << endl;
         
-        forwardDist = abs(heightMap.at(start_row).at(c + 1) - heightMap.at(start_row).at(c));
+        fwdDist = abs(heightMap.at(start_row).at(c + 1) - heightMap.at(start_row).at(c));
+        // cout << "fwdDist = " << fwdDist << endl;
         // current step vector index is i
-        i = 0;
-        pathSteps.at(i) = forwardDist;
-        i += 1;
+        numChoices = 0;
+        pathSteps.push_back(fwdDist);
+        numChoices += 1;
         // if not on last row, add fwd down dist & path option
         if (start_row < heightMap.size() - 1) {
             //cout << "row is: " << start_row << " and size of height vec is: " << heightMap.size() << endl;
-            forwardDownDist =  abs(heightMap.at(start_row + 1).at(c + 1) -  heightMap.at(start_row).at(c));
-            pathSteps.at(i) = forwardDownDist;
-            i += 1;
+            fwdDownDist =  abs(heightMap.at(start_row + 1).at(c + 1) -  heightMap.at(start_row).at(c));
+            pathSteps.push_back(fwdDownDist);
+            numChoices += 1;
+            bottomRow = false;
         }
         // if not on first row, add fwd up dist & path option
         if (start_row > 0) {
-            forwardUpDist = abs(heightMap.at(start_row - 1).at(c + 1) -  heightMap.at(start_row).at(c));
-            if (i > 1) {
-                pathSteps.push_back(forwardUpDist);
-            }
-            else {
-               pathSteps.at(i) = forwardUpDist; 
-            }
+            fwdUpDist = abs(heightMap.at(start_row - 1).at(c + 1) -  heightMap.at(start_row).at(c));
+            numChoices += 1;
+            // if on last row, fwdUp = 2nd path step, otherwise fwdUp = 3rd path step
+            pathSteps.push_back(fwdUpDist);
         }
         
         minStep = pathSteps.at(0);
@@ -100,7 +101,7 @@ int colorPath(const vector< vector<int> >& heightMap,
                 choiceNum = i;
             }
         }
-        //cout << "minStep is: " << minStep << " and choiceNum is: " << choiceNum << endl;
+        // cout << "minStep is: " << minStep << " and choiceNum is: " << choiceNum << endl;
 
         if (choiceNum == 0) {
             //move forward
@@ -108,26 +109,29 @@ int colorPath(const vector< vector<int> >& heightMap,
             g.at(start_row).at(c + 1) = color_g;
             b.at(start_row).at(c + 1) = color_b;
 
-            dist += forwardDist;
+            dist += fwdDist;
         }
-        else if (choiceNum == 1 && pathSteps.at(1) == forwardDownDist) {
+        else if (choiceNum == 1 && !bottomRow) {
             //move fwd down
             r.at(start_row + 1).at(c + 1) = color_r;
             g.at(start_row + 1).at(c + 1) = color_g;
             b.at(start_row + 1).at(c + 1) = color_b;
 
-            dist += forwardDownDist;
+            dist += fwdDownDist;
             start_row += 1;
         }
-        else {
+        else if ((choiceNum == 1 && bottomRow) || (choiceNum == 2 && !bottomRow)) {
             //move fwd up
             r.at(start_row - 1).at(c + 1) = color_r;
             g.at(start_row - 1).at(c + 1) = color_g;
             b.at(start_row - 1).at(c + 1) = color_b;
 
-            dist += forwardUpDist;
+            dist += fwdUpDist;
             start_row -= 1;
         }
+
+        pathSteps.clear();
+        bottomRow = true;
         
         
     }
@@ -142,6 +146,7 @@ int main() {
     int numColumns = 0;
     string fileName = "";
 
+    // enter file info
     cout << "Enter the number of rows: ";
     cin >> numRows;
     if (cin.fail()) {
@@ -173,6 +178,7 @@ int main() {
     //     cout << "Error: enter a numerical value for rows and columns." << endl; 
     // }
 
+    // open file and copy data into vector
     ifstream infs(fileName);
     int fileData = 0;
     vector< vector<int> > fileNums(numRows);
@@ -203,7 +209,6 @@ int main() {
                     fileNums.at(r).push_back(fileData);
             }
         }
-        //cout << "r is: " << r << " and c is: " << c << endl;
         if (r != numRows || c != numColumns) {
             cout << "Error: invalid input for rows and columns." << endl;
         }
@@ -224,6 +229,8 @@ int main() {
     //     }
 
     cout << endl;
+
+    // find min & max elevation values in file
     int maxElevation = MaxVal(fileNums);
     int minElevation = MinVal(fileNums);
     cout << "File max is: " << maxElevation << endl;
@@ -236,6 +243,7 @@ int main() {
     vector< vector <int> > gGrayVec(numRows);
     vector< vector <int> > bGrayVec(numRows);
     
+    // find grayscale rgb value of elevation points
     for (r = 0; r < numRows; r++) {
         for (c = 0; c < numColumns; c++) {
             elevationPoint = fileNums.at(r).at(c);
@@ -258,12 +266,12 @@ int main() {
     // create vector to hold dist values
     vector<int> pathDist(numRows);
     int pathCount = 0;
-    cout << "print me if you is good! :)" << endl;
+    
     for (pathCount = 0; pathCount < numRows; pathCount++) {
         pathDist.at(pathCount) = colorPath(fileNums, rGrayVec, gGrayVec, bGrayVec, 252, 25, 63, pathCount);
-        //cout << pathDist.at(pathCount) << " ";
+        // cout << pathDist.at(pathCount) << " ";
     }
-    cout << "print me if you is good! :)" << endl;
+    
 
     int minPath = pathDist.at(0);
     int minPathCount = 0;
@@ -273,12 +281,12 @@ int main() {
             minPathCount = pathCount;
         }
     }
-    cout << "print me if you is good! :)" << endl;
+    
     cout << "shortest path is: " << minPath << " at row: " << minPathCount << endl;
 
     // paint shortest path green - RGB (31, 253, 13)
     colorPath(fileNums, rGrayVec, gGrayVec, bGrayVec, 31, 253, 13, minPathCount);
-    cout << "print me if you is good! :)" << endl;
+    
 
     string firstLine = "P3";
     string imageFileName = "";
