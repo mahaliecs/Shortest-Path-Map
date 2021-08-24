@@ -262,13 +262,14 @@ int main() {
     //     }
     // }
 
-    // call paths func to paint path red - RGB (252, 25, 63)
+    // call paths func to paint path light blue - RGB (167, 206, 240)
     // create vector to hold dist values
     vector<int> pathDist(numRows);
     int pathCount = 0;
     
     for (pathCount = 0; pathCount < numRows; pathCount++) {
-        pathDist.at(pathCount) = colorPath(fileNums, rGrayVec, gGrayVec, bGrayVec, 252, 25, 63, pathCount);
+        pathDist.at(pathCount) = colorPath(fileNums, rGrayVec, gGrayVec, bGrayVec, 167, 206, 240, pathCount);
+
         // cout << pathDist.at(pathCount) << " ";
     }
     
@@ -284,8 +285,8 @@ int main() {
     
     cout << "shortest path is: " << minPath << " at row: " << minPathCount << endl;
 
-    // paint shortest path green - RGB (31, 253, 13)
-    colorPath(fileNums, rGrayVec, gGrayVec, bGrayVec, 31, 253, 13, minPathCount);
+    // paint shortest path darker blue - RGB (0, 101, 152)
+    colorPath(fileNums, rGrayVec, gGrayVec, bGrayVec, 0, 101, 152, minPathCount);
     
 
     string firstLine = "P3";
